@@ -26,6 +26,25 @@ services:
     networks:
       - elk
 
+  filebeat:
+    build:
+      context: filebeat/
+      args:
+        ELK_VERSION: $ELK_VERSION
+    volumes:
+      - type: bind
+        source: ./filebeat/config/filebeat.yml
+        target: /usr/share/filebeat/filebeat.yml
+        read_only: true
+      - type: bind
+        source: ./filebeat/input.log
+        target: /usr/share/filebeat/mylog/input.log
+        read_only: true
+    networks:
+      - elk
+    depends_on:
+       - logstash
+
   logstash:
     build:
       context: logstash/
@@ -40,6 +59,10 @@ services:
         source: ./logstash/pipeline
         target: /usr/share/logstash/pipeline
         read_only: true
+      - type: bind
+        source: ./logstash/output
+        target: /usr/share/logstash/output
+        read_only: false
     ports:
       - "5044:5044"
       - "5000:5000/tcp"
